@@ -1,0 +1,187 @@
+<!--pages/index/index.wxml-->
+<view class="page-container">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-title">选择抽奖参与者</view>
+    <view class="header-subtitle">从微信群、好友中选择或手动添加</view>
+  </view>
+
+  <!-- 数据来源选择 -->
+  <view class="source-section">
+    <view class="section-title">选择数据来源</view>
+    
+    <!-- 群聊选择 -->
+    <view class="source-card" bindtap="chooseGroupChat">
+      <view class="source-icon group-icon">
+        <text class="iconfont">👥</text>
+      </view>
+      <view class="source-info">
+        <view class="source-name">从群聊选择</view>
+        <view class="source-desc">选择微信群获取成员列表</view>
+      </view>
+      <view class="source-arrow">
+        <text class="arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 好友选择 -->
+    <view class="source-card" bindtap="chooseFriends">
+      <view class="source-icon friend-icon">
+        <text class="iconfont">💚</text>
+      </view>
+      <view class="source-info">
+        <view class="source-name">从好友选择</view>
+        <view class="source-desc">从微信好友中选择参与者</view>
+      </view>
+      <view class="source-arrow">
+        <text class="arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 手动添加 -->
+    <view class="source-card" bindtap="showManualInput">
+      <view class="source-icon manual-icon">
+        <text class="iconfont">✏️</text>
+      </view>
+      <view class="source-info">
+        <view class="source-name">手动添加</view>
+        <view class="source-desc">手动输入参与者名单</view>
+      </view>
+      <view class="source-arrow">
+        <text class="arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 已选择的参与者 -->
+  <view class="selected-section" wx:if="{{selectedParticipants.length > 0}}">
+    <view class="section-header">
+      <view class="section-title">已选择参与者</view>
+      <view class="participant-count">共 {{selectedParticipants.length}} 人</view>
+    </view>
+    
+    <view class="participants-grid">
+      <view class="participant-item" wx:for="{{selectedParticipants}}" wx:key="id">
+        <view class="participant-avatar">{{item.name[0]}}</view>
+        <view class="participant-name">{{item.name}}</view>
+        <view class="participant-remove" catchtap="removeParticipant" data-id="{{item.id}}">×</view>
+      </view>
+    </view>
+    
+    <view class="section-actions">
+      <view class="btn-text-danger" bindtap="clearAllParticipants">清空所有</view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{selectedParticipants.length === 0}}">
+    <image class="empty-state-icon" src="/images/empty.png" mode="aspectFit"></image>
+    <view class="empty-state-text">暂未选择参与者</view>
+    <view class="empty-state-hint">请从上方选择数据来源添加参与者</view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar" wx:if="{{selectedParticipants.length > 0}}">
+    <view class="selected-info">
+      <text class="info-label">已选择</text>
+      <text class="info-count">{{selectedParticipants.length}}</text>
+      <text class="info-label">人</text>
+    </view>
+    <button class="btn-next" bindtap="goToLottery">
+      下一步：设置奖项
+    </button>
+  </view>
+</view>
+
+<!-- 群聊选择弹窗 -->
+<view class="modal-mask" wx:if="{{showGroupModal}}" bindtap="hideGroupModal"></view>
+<view class="modal-container group-modal {{showGroupModal ? 'show' : ''}}">
+  <view class="modal-header">
+    <view class="modal-title">选择群聊</view>
+    <view class="modal-close" bindtap="hideGroupModal">×</view>
+  </view>
+  
+  <view class="modal-body">
+    <view class="group-list" wx:if="{{groups.length > 0}}">
+      <view class="group-item" wx:for="{{groups}}" wx:key="chatId" bindtap="selectGroup" data-group="{{item}}">
+        <view class="group-avatar">{{item.name[0]}}</view>
+        <view class="group-info">
+          <view class="group-name">{{item.name}}</view>
+          <view class="group-count">{{item.memberCount}} 人</view>
+        </view>
+        <view class="select-type">
+          <button class="btn-select-all" catchtap="selectAllMembers" data-group="{{item}}">全部选择</button>
+          <button class="btn-select-partial" catchtap="selectPartialMembers" data-group="{{item}}">部分选择</button>
+        </view>
+      </view>
+    </view>
+    
+    <view class="empty-state" wx:else>
+      <view class="empty-state-text">暂无群聊</view>
+      <view class="empty-state-hint">请先创建或加入微信群</view>
+    </view>
+  </view>
+</view>
+
+<!-- 成员选择弹窗 -->
+<view class="modal-mask" wx:if="{{showMemberModal}}" bindtap="hideMemberModal"></view>
+<view class="modal-container member-modal {{showMemberModal ? 'show' : ''}}">
+  <view class="modal-header">
+    <view class="modal-title">选择成员 ({{currentGroup.name}})</view>
+    <view class="modal-close" bindtap="hideMemberModal">×</view>
+  </view>
+  
+  <view class="modal-search">
+    <input class="search-input" placeholder="搜索成员" value="{{memberSearchKey}}" bindinput="searchMember"/>
+  </view>
+  
+  <view class="modal-actions">
+    <view class="btn-text" bindtap="selectAllMembersInModal">全选</view>
+    <view class="btn-text" bindtap="deselectAllMembersInModal">取消全选</view>
+  </view>
+  
+  <view class="modal-body">
+    <view class="member-list">
+      <view class="member-item {{item.selected ? 'selected' : ''}}" 
+            wx:for="{{filteredMembers}}" 
+            wx:key="id" 
+            bindtap="toggleMember"
+            data-index="{{index}}">
+        <view class="member-checkbox">
+          <view class="checkbox-inner" wx:if="{{item.selected}}">✓</view>
+        </view>
+        <view class="member-avatar">{{item.name[0]}}</view>
+        <view class="member-info">
+          <view class="member-name">{{item.name}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <view class="modal-footer">
+    <view class="selected-count">已选择 {{tempSelectedCount}} 人</view>
+    <button class="btn-confirm" bindtap="confirmMemberSelection">确认选择</button>
+  </view>
+</view>
+
+<!-- 手动输入弹窗 -->
+<view class="modal-mask" wx:if="{{showManualModal}}" bindtap="hideManualModal"></view>
+<view class="modal-container manual-modal {{showManualModal ? 'show' : ''}}">
+  <view class="modal-header">
+    <view class="modal-title">手动添加参与者</view>
+    <view class="modal-close" bindtap="hideManualModal">×</view>
+  </view>
+  
+  <view class="modal-body">
+    <textarea class="manual-textarea" 
+              placeholder="每行输入一个姓名&#10;例如：&#10;张三&#10;李四&#10;王五"
+              value="{{manualInputText}}"
+              bindinput="onManualInput"></textarea>
+    <view class="input-hint">💡 每行一个姓名，系统会自动识别并添加</view>
+  </view>
+  
+  <view class="modal-footer">
+    <button class="btn-cancel" bindtap="hideManualModal">取消</button>
+    <button class="btn-confirm" bindtap="confirmManualInput">确认添加</button>
+  </view>
+</view>

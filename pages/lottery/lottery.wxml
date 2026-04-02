@@ -1,0 +1,132 @@
+<!--pages/lottery/lottery.wxml-->
+<view class="page-container">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-title">设置奖项并抽奖</view>
+    <view class="header-subtitle">配置奖项数量，开始幸运抽奖</view>
+  </view>
+
+  <!-- 奖项设置 -->
+  <view class="prizes-section">
+    <view class="section-header">
+      <view class="section-title">奖项设置</view>
+      <view class="btn-add" bindtap="addPrize">+ 添加奖项</view>
+    </view>
+    
+    <view class="prizes-list">
+      <view class="prize-item" wx:for="{{prizes}}" wx:key="id">
+        <view class="prize-rank {{item.rank}}">{{index + 1}}</view>
+        <view class="prize-inputs">
+          <input class="prize-name-input" 
+                 value="{{item.name}}" 
+                 placeholder="奖项名称"
+                 bindinput="updatePrizeName"
+                 data-index="{{index}}"/>
+          <view class="prize-count-input">
+            <view class="count-btn" bindtap="decreasePrizeCount" data-index="{{index}}">-</view>
+            <input class="count-value" type="number" value="{{item.count}}" disabled/>
+            <view class="count-btn" bindtap="increasePrizeCount" data-index="{{index}}">+</view>
+          </view>
+        </view>
+        <view class="btn-remove" bindtap="removePrize" data-index="{{index}}">×</view>
+      </view>
+    </view>
+    
+    <view class="empty-prizes" wx:if="{{prizes.length === 0}}">
+      <view class="empty-text">暂无奖项</view>
+      <view class="empty-hint">点击上方按钮添加奖项</view>
+    </view>
+  </view>
+
+  <!-- 抽奖区域 -->
+  <view class="lottery-section">
+    <view class="lottery-box">
+      <!-- 信息显示 -->
+      <view class="lottery-info">
+        <view class="info-item">
+          <view class="info-label">参与人数</view>
+          <view class="info-value">{{selectedParticipants.length}}</view>
+        </view>
+        <view class="info-divider"></view>
+        <view class="info-item">
+          <view class="info-label">当前奖项</view>
+          <view class="info-value prize-name">{{currentPrize.name || '等待开始'}}</view>
+        </view>
+      </view>
+      
+      <!-- 抽奖显示区 -->
+      <view class="lottery-display">
+        <view class="placeholder" wx:if="{{!isRolling && !showWinner}}">
+          <view class="placeholder-icon">🎰</view>
+          <view class="placeholder-text">点击下方按钮开始抽奖</view>
+        </view>
+        
+        <view class="rolling-name" wx:if="{{isRolling}}">
+          {{rollingName}}
+        </view>
+        
+        <view class="winner-display" wx:if="{{showWinner}}">
+          <view class="congratulations">🎉 恭喜 🎉</view>
+          <view class="winner-name">{{currentWinner.name}}</view>
+          <view class="winner-prize">获得 {{currentWinner.prize}}</view>
+        </view>
+      </view>
+      
+      <!-- 抽奖按钮 -->
+      <button class="btn-lottery {{isLotteryRunning ? 'disabled' : ''}}" 
+              bindtap="startLottery"
+              disabled="{{isLotteryRunning || selectedParticipants.length === 0}}">
+        {{isLotteryRunning ? '抽奖中...' : '开始抽奖'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 中奖名单 -->
+  <view class="winners-section" wx:if="{{winners.length > 0}}">
+    <view class="section-header">
+      <view class="section-title">中奖名单</view>
+      <view class="winner-count">共 {{winners.length}} 人</view>
+    </view>
+    
+    <view class="winners-grid">
+      <view class="winner-card" wx:for="{{winners}}" wx:key="id">
+        <view class="winner-avatar">{{item.name[0]}}</view>
+        <view class="winner-info">
+          <view class="winner-name">{{item.name}}</view>
+          <view class="winner-prize">{{item.prize}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{selectedParticipants.length === 0}}">
+    <image class="empty-icon" src="/images/empty.png" mode="aspectFit"></image>
+    <view class="empty-text">暂无参与者</view>
+    <view class="empty-hint">请先到"选择参与者"页面添加参与者</view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="bottom-actions" wx:if="{{winners.length > 0}}">
+    <button class="btn-save" bindtap="saveToHistory">保存到历史</button>
+    <button class="btn-reset" bindtap="resetLottery">重新抽奖</button>
+  </view>
+</view>
+
+<!-- 抽奖动画遮罩 -->
+<view class="lottery-overlay" wx:if="{{showOverlay}}">
+  <view class="overlay-content">
+    <view class="overlay-rolling" wx:if="{{isRolling}}">
+      <view class="rolling-text">{{rollingName}}</view>
+      <view class="rolling-hint">正在抽取 {{currentPrize.name}}...</view>
+    </view>
+    
+    <view class="overlay-winner" wx:if="{{showWinner}}">
+      <view class="celebration">🎊🎊🎊</view>
+      <view class="congrats-text">恭喜</view>
+      <view class="big-winner-name">{{currentWinner.name}}</view>
+      <view class="big-winner-prize">获得 {{currentWinner.prize}}</view>
+      <view class="celebration">🎊🎊🎊</view>
+    </view>
+  </view>
+</view>

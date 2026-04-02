@@ -1,0 +1,93 @@
+<!--pages/history/history.wxml-->
+<view class="page-container">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-title">历史记录</view>
+    <view class="header-subtitle">查看过往抽奖记录</view>
+  </view>
+
+  <!-- 历史列表 -->
+  <view class="history-list" wx:if="{{history.length > 0}}">
+    <view class="history-item" wx:for="{{history}}" wx:key="id">
+      <view class="history-header">
+        <view class="history-date">{{item.date}}</view>
+        <view class="history-count">共 {{item.participantCount}} 人参与</view>
+      </view>
+      
+      <view class="history-prizes">
+        <view class="prize-summary">
+          <text>奖项设置：</text>
+          <text class="prize-list">{{item.prizes.length}} 个奖项，共 {{item.winners.length}} 名中奖者</text>
+        </view>
+      </view>
+      
+      <view class="history-winners">
+        <view class="winner-tag" wx:for="{{item.winners}}" wx:for-item="winner" wx:key="id">
+          <text class="winner-prize">{{winner.prize}}</text>
+          <text class="winner-name">{{winner.name}}</text>
+        </view>
+      </view>
+      
+      <view class="history-actions">
+        <view class="btn-detail" bindtap="viewDetail" data-record="{{item}}">查看详情</view>
+        <view class="btn-delete" bindtap="deleteRecord" data-id="{{item.id}}">删除</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{history.length === 0}}">
+    <image class="empty-icon" src="/images/empty.png" mode="aspectFit"></image>
+    <view class="empty-text">暂无历史记录</view>
+    <view class="empty-hint">完成抽奖后会自动保存到这里</view>
+  </view>
+</view>
+
+<!-- 详情弹窗 -->
+<view class="modal-mask" wx:if="{{showDetailModal}}" bindtap="hideDetailModal"></view>
+<view class="modal-container detail-modal {{showDetailModal ? 'show' : ''}}">
+  <view class="modal-header">
+    <view class="modal-title">抽奖详情</view>
+    <view class="modal-close" bindtap="hideDetailModal">×</view>
+  </view>
+  
+  <view class="modal-body" wx:if="{{currentRecord}}">
+    <view class="detail-section">
+      <view class="detail-label">抽奖时间</view>
+      <view class="detail-value">{{currentRecord.date}}</view>
+    </view>
+    
+    <view class="detail-section">
+      <view class="detail-label">参与人数</view>
+      <view class="detail-value">{{currentRecord.participantCount}} 人</view>
+    </view>
+    
+    <view class="detail-section">
+      <view class="detail-label">奖项设置</view>
+      <view class="prizes-detail">
+        <view class="prize-detail-item" wx:for="{{currentRecord.prizes}}" wx:key="id">
+          <view class="prize-badge {{item.rank}}">{{item.name}}</view>
+          <view class="prize-count">{{item.count}} 名</view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="detail-section">
+      <view class="detail-label">中奖名单</view>
+      <view class="winners-detail">
+        <view class="winner-detail-item" wx:for="{{currentRecord.winners}}" wx:key="id">
+          <view class="winner-avatar">{{item.name[0]}}</view>
+          <view class="winner-info">
+            <view class="winner-name">{{item.name}}</view>
+            <view class="winner-prize">{{item.prize}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <view class="modal-footer">
+    <button class="btn-share" open-type="share">分享结果</button>
+    <button class="btn-close-modal" bindtap="hideDetailModal">关闭</button>
+  </view>
+</view>

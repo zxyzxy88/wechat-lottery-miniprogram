@@ -1,0 +1,24 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "upload-miniprogram.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://oauth2: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@github.com/zxyzxy88/wechat-lottery-miniprogram.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/zxyzxy88/wechat-lottery-miniprogram/issues"
+  },
+  "homepage": "https://github.com/zxyzxy88/wechat-lottery-miniprogram#readme",
+  "dependencies": {
+    "miniprogram-ci": "^2.1.31"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "lottery-app",
+  "version": "1.0.0",
+  "description": "微信抽奖小程序",
+  "scripts": {
+    "start": "npx http-server -p 8080 -c-1"
+  }
+}
